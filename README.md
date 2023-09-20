@@ -1,24 +1,77 @@
-# README
+# Following code needs to be refactored:
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+class User < ApplicationRecord
+has_many :interests
+has_many :skills, class_name: 'Skill'
+end
 
-Things you may want to cover:
+class Interest < ApplicationRecord
+has_many :users
+end
 
-* Ruby version
+class Skill < ApplicationRecord
+has_many :users
+end
 
-* System dependencies
+# In appliaction we are using ActiveInteraction gem => https://github.com/AaronLasseigne/active_interaction
 
-* Configuration
+module Users
+class Create < ActiveInteraction::Base
+hash :params
 
-* Database creation
+    def execute
+      # don't do anything if params is empty
+      return unless params['name']
+      return unless params['patronymic']
+      return unless params['email']
+      return unless params['age']
+      return unless params['nationality']
+      return unless params['country']
+      return unless params['gender']
+      ##########
+      return if User.where(email: params['email'])
+      return if params['age'] <= 0 || params['age'] > 90
+      return if (params['gender'] != 'male') || (params['gender'] != female)
 
-* Database initialization
+      user_full_name = "#{params['surname']} #{params['name']} #{params['patronymic']}"
+      user_params = params.except(:interests)
+      user = User.create(user_params.merge(user_full_name))
 
-* How to run the test suite
+      Intereset.where(name: params['interests']).each do |interest|
+        user.interests = user.interest + interest
+        user.save!
+      end
 
-* Services (job queues, cache servers, search engines, etc.)
+      user_skills = []
+      params['skills'].split(',').each do |skill|
+        skill = Skill.find(name: skill)
+        user_skills += [skill]
+      end
+      user.skills = user_skills
+      user.save
+    end
 
-* Deployment instructions
+end
+end
 
-* ...
+# User object in database
+
+name string
+surname string
+patronymic string
+fullname string
+email string
+age integer
+nationality string
+country string
+interests array
+gender string
+skills string
+
+# Interest object in database
+
+name string
+
+# Skill oject in database
+
+name string
