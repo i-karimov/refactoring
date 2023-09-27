@@ -31,7 +31,7 @@ module Users
     private
 
     def user_exists?
-      errors.add(:email, "Can't find user with email: #{email}") if User.where(email:).exists?
+      errors.add(:email, "User already exists, email: #{email}") if User.where(email:).exists?
     end
 
     def valid_gender?
